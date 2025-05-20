@@ -89,7 +89,7 @@ scalone = []
 for regula, decyzja, sup in reguly:
     znalezione = False
     for reg in scalone:
-        if reg["warunki"] == regula:
+        if set(reg["warunki"]) == set(regula): #traktujemy warunki jako zbiór, wtedy ich koleność nie ma znaczenia
             reg["decyzje"].add(decyzja)
             reg["support"] += sup
             znalezione = True
@@ -101,7 +101,7 @@ for regula, decyzja, sup in reguly:
             "support": sup
         })
 
-# WYŚWIETLAM końcowe reguły
+# WYŚWIETLAMY końcowe reguły
 for i, reg in enumerate(scalone, 1):
     # składanie lewej strony: warunki typu (a1 = 2) ∧ (a2 = 3) ...
     lewa = " ∧ ".join(f"({a} = {v})" for a, v in reg["warunki"])
