@@ -17,9 +17,9 @@ def znpok(dane, o1, kom):
 # Tworzy regułę w formie tekstu, np. o2(a1=1)(a3=3) -> (d=1)[3]
 def utreg(i, o1, kom, pokakt):
     pokcount = len(pokakt)
-    pokstr = f"[{pokcount}]" if pokcount > 1 else ""
+    support = f"[{pokcount}]" if pokcount > 1 else "" # dodaje support tylko jak jest powyzej jednego
     atrstr = ''.join(f'(a{a+1}={o1[a]})' for a in kom)
-    return f"o{i+1}{atrstr} -> (d={o1[-1]}){pokstr}"
+    return f"o{i+1}{atrstr} -> (d={o1[-1]}){support}"
 
 # Główny algorytm – Sequential Covering
 # Szuka minimalnych reguł pokrywających obiekty bez sprzeczności

@@ -1,5 +1,5 @@
 import pandas as pd
-from collections import Counter, defaultdict
+from collections import Counter
 
 # Wczytujemy dane z pliku (każdy wiersz to obiekt, ostatnia kolumna to decyzja)
 dane = pd.read_csv('lem2.txt', sep=" ", header=None)
@@ -84,19 +84,29 @@ for decyzja in sorted(dane['d'].unique()):
         pozostale -= pokryte
 
 # SCALANIE – jeśli dwie reguły mają te same warunki, ale różne decyzje, łączymy je
-scalone = defaultdict(lambda: {"decisions": set(), "support": 0})
+scalone = []
 
 for regula, decyzja, sup in reguly:
-    klucz = tuple(sorted(regula))  # sortujemy warunki żeby nie liczyły się ich kolejności
-    scalone[klucz]["decisions"].add(decyzja)
-    scalone[klucz]["support"] += sup  # sumujemy support z kilku decyzji
+    znalezione = False
+    for reg in scalone:
+        if reg["warunki"] == regula:
+            reg["decyzje"].add(decyzja)
+            reg["support"] += sup
+            znalezione = True
+            break
+    if not znalezione:
+        scalone.append({
+            "warunki": regula,
+            "decyzje": {decyzja},
+            "support": sup
+        })
 
-# WYŚWIETLAMY końcowe reguły
-for i, (warunki, info) in enumerate(scalone.items(), 1):
+# WYŚWIETLAM końcowe reguły
+for i, reg in enumerate(scalone, 1):
     # składanie lewej strony: warunki typu (a1 = 2) ∧ (a2 = 3) ...
-    lewa = " ∧ ".join(f"({a} = {v})" for a, v in warunki)
-    # składanie prawej strony: np. (d = 1) | (d = 2)
-    prawa = " | ".join(f"(d = {d})" for d in sorted(info["decisions"]))
+    lewa = " ∧ ".join(f"({a} = {v})" for a, v in reg["warunki"])
+    # skladanie prawej strony: np. (d = 1) | (d = 2)
+    prawa = " | ".join(f"(d = {d})" for d in reg["decyzje"])
     # jeśli więcej niż 1 obiekt – pokazujemy [support]
-    sup = f"[{info['support']}]" if info["support"] > 1 else ""
+    sup = f"[{reg['support']}]" if reg["support"] > 1 else ""
     print(f"reg: {i} {lewa} => {prawa}{sup}")
