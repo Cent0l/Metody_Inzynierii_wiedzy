@@ -19,31 +19,45 @@ def odleglosc(p1, p2):
 # Krok 4: Własna funkcja KNN
 def knn(X_tren, y_tren, X_test, k):
     przewidziane = []
-    for obiekt_testowy in X_test:
+    for idx, obiekt_testowy in enumerate(X_test):
         dystanse = []
         for i in range(len(X_tren)):
             d = odleglosc(obiekt_testowy, X_tren[i])
             dystanse.append((d, y_tren[i]))  # zapisujemy dystans i klasę
 
-        # sortujemy po dystansie i bierzemy k najbliższych
+        # Sortujemy po dystansie i bierzemy k najbliższych
         dystanse.sort(key=lambda x: x[0])
         k_najblizszych = [klasa for _, klasa in dystanse[:k]]
 
+        licznik = Counter(k_najblizszych)
         # wybieramy najczęściej występującą klasę
-        najczestsza = Counter(k_najblizszych).most_common(1)[0][0]
-        przewidziane.append(najczestsza)
+        najczestsze = licznik.most_common()
+
+        if len(najczestsze) > 1 and najczestsze[0][1] == najczestsze[1][1]:
+            print(f"tyle samo")
+            przewidziane.append(None)
+        else:
+            przewidziane.append(najczestsze[0][0])
 
     return przewidziane
 
-# Krok 5: Uruchomienie algorytmu KNN dla k = 3
+# Krok 5: Uruchomienie klasyfikatora KNN dla k = 3
 k = 3
 y_pred = knn(X_train, y_train, X_test, k)
 
 # Krok 6: Liczymy dokładność klasyfikacji
 trafienia = 0
-for i in range(len(y_test)):
-    if y_pred[i] == y_test[i]:
-        trafienia += 1
+liczone = 0
 
-dokladnosc = trafienia / len(y_test)
-print(f"Dokładność dla k={k}: {dokladnosc * 100:.2f}% ({trafienia}/{len(y_test)})")
+for i in range(len(y_test)):
+    if y_pred[i] is not None:
+        liczone += 1
+        if y_pred[i] == y_test[i]:
+            trafienia += 1
+
+
+if liczone > 0:
+    dokladnosc = trafienia / liczone
+    print(f"Dokładność: {dokladnosc * 100:.2f}%")
+else:
+    print("brak klasyfikacji.")
