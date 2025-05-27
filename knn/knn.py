@@ -3,51 +3,47 @@ from sklearn.datasets import load_iris
 from sklearn.model_selection import train_test_split
 from collections import Counter
 
-# KROK 1: Wczytujemy zbiór iris z biblioteki sklearn
-# Zawiera dane o długościach i szerokościach płatków/działek kwiatów oraz ich klasy
+# Krok 1: Wczytanie danych
 iris = load_iris()
-X = iris.data       # tylko atrybuty (4 kolumny liczbowe)
-y = iris.target     # klasy decyzyjne (0, 1, 2 – czyli 3 różne kwiaty)
+X = iris.data      # atrybuty (cechy kwiatów)
+y = iris.target    # klasy decyzyjne (0, 1, 2)
 
-# KROK 2: Dzielimy dane na zbiór treningowy i testowy
-# 70% idzie do nauki (trening), 30% do testu, stratify=y zachowuje proporcje klas
-X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.3, random_state=42, stratify=y
-)
+# Krok 2: Podział na dane treningowe i testowe (losowo, 70% / 30%)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3)
 
-# KROK 3: Liczymy odległość Euklidesową między dwoma punktami (czyli klasyczne √((x1 - x2)^2 + ...))
-def euklides(p1, p2):
-    return np.sqrt(np.sum((p1 - p2) ** 2))
+# Krok 3: Obliczanie odległości Euklidesowej
+def odleglosc(p1, p2):
+    suma_kwadratow = np.sum((p1 - p2) ** 2)
+    return np.sqrt(suma_kwadratow)
 
-# KROK 4: Nasza własna funkcja KNN – żadnych gotowców!
-# Bierzemy zbiór treningowy, testowy i wartość k (ilu sąsiadów patrzymy)
-def knn(X_train, y_train, X_test, k):
-    przewidziane_klasy = []  # tu będziemy zapisywać klasy, które przewidzieliśmy
-    for x in X_test:  # dla każdego obiektu z testowego
-        # Liczymy dystans od tego obiektu do KAŻDEGO obiektu z treningowego
-        dystanse = [euklides(x, xtr) for xtr in X_train]
+# Krok 4: Własna funkcja KNN
+def knn(X_tren, y_tren, X_test, k):
+    przewidziane = []
+    for obiekt_testowy in X_test:
+        dystanse = []
+        for i in range(len(X_tren)):
+            d = odleglosc(obiekt_testowy, X_tren[i])
+            dystanse.append((d, y_tren[i]))  # zapisujemy dystans i klasę
 
-        # Sortujemy dystanse i bierzemy indeksy k najbliższych
-        najblizsi_idx = np.argsort(dystanse)[:k]
+        # sortujemy po dystansie i bierzemy k najbliższych
+        dystanse.sort(key=lambda x: x[0])
+        k_najblizszych = [klasa for _, klasa in dystanse[:k]]
 
-        # Zbieramy klasy tych k najbliższych sąsiadów
-        najblizsze_klasy = [y_train[i] for i in najblizsi_idx]
+        # wybieramy najczęściej występującą klasę
+        najczestsza = Counter(k_najblizszych).most_common(1)[0][0]
+        przewidziane.append(najczestsza)
 
-        # Wybieramy klasę, która występuje najczęściej wśród sąsiadów
-        przewidziana = Counter(najblizsze_klasy).most_common(1)[0][0]
+    return przewidziane
 
-        # Zapisujemy wynik do listy
-        przewidziane_klasy.append(przewidziana)
-
-    return przewidziane_klasy  # zwracamy przewidziane klasy dla całego testu
-
-# KROK 5: Uruchamiamy algorytm dla k = 3
+# Krok 5: Uruchomienie algorytmu KNN dla k = 3
 k = 3
 y_pred = knn(X_train, y_train, X_test, k)
 
-# KROK 6: Liczymy ile razy przewidzieliśmy klasę poprawnie
-trafienia = sum(yp == yt for yp, yt in zip(y_pred, y_test))  # porównujemy każdą przewidzianą z rzeczywistą
-dokladnosc = trafienia / len(y_test)
+# Krok 6: Liczymy dokładność klasyfikacji
+trafienia = 0
+for i in range(len(y_test)):
+    if y_pred[i] == y_test[i]:
+        trafienia += 1
 
-# Wypisujemy wynik końcowy – dokładność klasyfikacji
-print(f"Dokładność klasyfikacji dla k={k}: {dokladnosc * 100:.2f}% ({trafienia}/{len(y_test)})")
+dokladnosc = trafienia / len(y_test)
+print(f"Dokładność dla k={k}: {dokladnosc * 100:.2f}% ({trafienia}/{len(y_test)})")
