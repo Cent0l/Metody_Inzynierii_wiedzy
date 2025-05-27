@@ -34,7 +34,7 @@ def knn(X_tren, y_tren, X_test, k):
         najczestsze = licznik.most_common()
 
         if len(najczestsze) > 1 and najczestsze[0][1] == najczestsze[1][1]:
-            print(f"tyle samo")
+            print(f"Taka sama czestosc")
             przewidziane.append(None)
         else:
             przewidziane.append(najczestsze[0][0])
